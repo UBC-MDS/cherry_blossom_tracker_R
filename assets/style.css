@@ -1,0 +1,122 @@
+body {
+    font-family: 'Montserrat';
+}
+
+#header {
+    height: 80px;
+    background-color: #B665A4;
+}
+
+.navbar-brand {
+    font-size: 27px;
+}
+
+#logo-img {
+    text-align: right;
+    padding: 0;
+    background-color: #B665A4;
+}
+
+#menu-bar {
+    background-color: #F3F3F3;
+    margin-top: 0px;
+    padding: 15px 0;
+}
+
+.dash-dropdown {
+    box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.1);
+}
+
+.DateInput_input {
+    font-size: 15px;
+    color:black;
+}
+
+.DateRangePickerInput_arrow_svg {
+    width: 15px;
+}
+
+.DateInput {
+    width: 100px;
+}
+
+#content {
+    max-width: 100%;
+    padding: 0;
+}
+
+.chart-box {
+    border: 1px solid lightgray;
+    border-radius: 10px;
+    box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.1);
+    padding: 2%;
+    max-width: 45%;
+    margin: 1%;
+}
+
+label {
+    color: #109D73;
+    font-size: 18px;
+}
+
+#bar, #timeline {
+    border-width: 0;
+    width: 100%;
+    height: 600px;
+}
+
+#diameter {
+    border-width: 0;
+    width: 100%;
+    height: 400px;
+}
+
+#header-back {
+    max-width: 100%;
+    background-color: #B665A4;
+    padding: 0;
+}
+
+#nav-back {
+    background-color: #F3F3F3;
+    max-width: 100%;
+}
+
+.row-chart {
+    justify-content: center;
+}
+
+#row-map {
+    margin: 20px 0;
+}
+
+#simple-toast-toggle {
+    color: white;
+    margin: 0!important;
+}
+
+#simple-toast-toggle:hover {
+    text-decoration: underline;
+}
+
+#simple-toast {
+    position: absolute;
+    right: 40%;
+    z-index: 5;
+    top: 10px;
+    width: 400px;
+    background-color: #6D3962;
+    box-shadow: 0px 5px 20px 0px rgba(0, 0, 0, 0.36);
+    color: white;
+}
+
+.toast-header {
+    background-color: #6D3962;
+    color: white;
+    font-weight: bold;
+    border-color: white;
+}
+
+.text-primary {
+    color:white!important;
+}
