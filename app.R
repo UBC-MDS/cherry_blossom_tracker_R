@@ -39,7 +39,7 @@ navbar <- dbcNavbarSimple(
 
 # Set option list for menu filters
 option_indicator <- function(available_indicators) {
-  lapply(
+  list <- lapply(
     available_indicators,
     function(available_indicator) {
       list(
@@ -48,6 +48,9 @@ option_indicator <- function(available_indicators) {
       )
     }
   )
+  ordered_list <- list[order(sapply(list,'[[',1))]
+  
+  return (ordered_list)
 }
 
 # Menu filters
