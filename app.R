@@ -39,7 +39,7 @@ navbar <- dbcNavbarSimple(
 
 # Set option list for menu filters
 option_indicator <- function(available_indicators) {
-  lapply(
+  list <- lapply(
     available_indicators,
     function(available_indicator) {
       list(
@@ -48,6 +48,9 @@ option_indicator <- function(available_indicators) {
       )
     }
   )
+  ordered_list <- list[order(sapply(list,'[[',1))]
+  
+  return (ordered_list)
 }
 
 # Menu filters
@@ -63,20 +66,22 @@ date_picker <- dccDatePickerRange(
 
 drop_hood <- dccDropdown(
   id = "filter_neighbourhood",
-  value = "all_neighbourhoods",
-  options = c(
-    list(list(label = "All neighbourhoods", value = "all_neighbourhoods")),
-    option_indicator(unique(raw_trees$NEIGHBOURHOOD_NAME))
-  )
+  options = option_indicator(unique(raw_trees$NEIGHBOURHOOD_NAME)),
+  value = list(),
+  placeholder = "Select neighbourhoods",
+  clearable = TRUE,
+  searchable = TRUE,
+  multi = TRUE
 )
 
 drop_cultivar <- dccDropdown(
   id = "filter_cultivar",
-  value = "all_cultivars",
-  options = c(
-    list(list(label = "All cultivars", value = "all_cultivars")),
-    option_indicator(unique(raw_trees$CULTIVAR_NAME))
-  )
+  options = option_indicator(unique(raw_trees$CULTIVAR_NAME)),
+  value = list(),
+  placeholder = "Select cultivars",
+  clearable = TRUE,
+  searchable = TRUE,
+  multi = TRUE
 )
 
 range_slider <- dccRangeSlider(
@@ -256,9 +261,10 @@ app$callback(
   list(
     input("picker_date", "start_date"),
     input("picker_date", "end_date"),
+    input("filter_neighbourhood", "value"),
     input("filter_cultivar", "value")
   ),
-  function(start_date, end_date, cultivar) {
+  function(start_date, end_date, neighbourhood, cultivar) {
     # Date input Cleanup
     
     # 
@@ -284,12 +290,19 @@ app$callback(
           ((BLOOM_START <= end_date) & (BLOOM_START >= start_date)) |
           ((BLOOM_END <= end_date) & (BLOOM_END >= start_date))
       )
+    
+    # Filter by neighborhood
+    
+    if (length(neighbourhood) != 0) {
+      filtered_trees <- filtered_trees %>%
+        filter(NEIGHBOURHOOD_NAME %in% neighbourhood)
+    }
 
     # Filter by cultivar
     
-    if (cultivar != "all_cultivars") {
+    if (length(cultivar) != 0) {
       filtered_trees <- filtered_trees %>%
-        filter(CULTIVAR_NAME == cultivar)
+        filter(CULTIVAR_NAME %in% cultivar)
     }
 
     timeline <- timeline_plot(filtered_trees)
