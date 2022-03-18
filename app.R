@@ -277,11 +277,9 @@ app$layout(
               dbcCol(
                 list(
                   htmlLabel("Tree density"),
-                  # Start of placeholder for TZ
                   dccGraph(
                     id = "density"
                   )
-                  # End of placeholder
                 ),
                 width = 6,
                 className = "chart-box"
@@ -332,6 +330,19 @@ street_map_plot <- function(df) {
     return(fig)
 }
 
+density_plot <- function(df) {
+    geojson2 <- geojson2 %>%
+        left_join(df %>% count(NEIGHBOURHOOD_NAME),
+                  by = c("id" = "NEIGHBOURHOOD_NAME"))
+    
+    fig_cho <- ggplot() +
+        geom_polygon(data = geojson2, 
+                     aes(x = long, y = lat, group = group, fill = n)) +
+        coord_map()
+    
+    return(ggplotly(fig_cho))
+}
+
 timeline_plot <- function(trees_timeline) {
   trees_timeline <- trees_timeline %>%
     filter_at(vars(BLOOM_START, BLOOM_END), any_vars(!is.na(.))) %>%
@@ -364,7 +375,8 @@ timeline_plot <- function(trees_timeline) {
 app$callback(
   list(
       output("timeline", "figure"),    
-      output("streetmap", "figure")
+      output("streetmap", "figure"),
+      output("density", "figure")
   ),
   list(
     input("picker_date", "start_date"),
@@ -421,8 +433,9 @@ app$callback(
 
     timeline <- timeline_plot(filtered_trees)
     streetmap <- street_map_plot(filtered_trees)
+    density <- density_plot(filtered_trees)
 
-    return(list(timeline, streetmap))
+    return(list(timeline, streetmap, density))
   }
 )
 
