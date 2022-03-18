@@ -221,7 +221,7 @@ app$layout(
                       # Start of placeholder
                       htmlDiv(
                         style = (
-                          list("border" = "1px lightgray solid", "height" = "400px")
+                          list("background-color" = "lightgray", "height" = "400px")
                         )
                       )
                       # End of placeholder
@@ -245,13 +245,14 @@ app$layout(
                   # Start of placeholder
                   htmlDiv(
                         style = (
-                          list("border" = "1px lightgray solid", "height" = "400px")
+                          list("background-color" = "lightgray", "height" = "500px")
                         )
                       )
                   # End of placeholder
 
                 ),
-                width = 6
+                width = 6,
+                className = "chart-box"
               ),
               dbcCol(
                 list(
@@ -260,7 +261,8 @@ app$layout(
                     id = "timeline"
                   )
                 ),
-                width = 6
+                width = 6,
+                className = "chart-box"
               )
             )
           )
