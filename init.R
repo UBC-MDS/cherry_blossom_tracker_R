@@ -9,7 +9,7 @@ options(repos=r)
 # ======================================================================
 
 # packages go here
-install.packages(c('dash', 
+install.packages(c('dash', 'tidyverse',
                    # map-related packages
                    'maptools', 'rgeos', 'rgdal', 'mapproj', 'broom',
                    'readr', 'here', 'ggthemes', 'remotes', 'dashCoreComponents', 'dashHtmlComponents', 'dashBootstrapComponents', 
