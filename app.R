@@ -299,12 +299,25 @@ app$layout(
 # Chart function
 
 street_map_plot <- function(df) {
+    # https://github.com/plotly/plotly.R/issues/1548#issuecomment-582042676
+    df_list <- split(df %>%
+                         select(COMMON_NAME,
+                                NEIGHBOURHOOD_NAME,
+                                DIAMETER,
+                                TREE_ID), seq_len(nrow(df)))
+    
     fig <- df %>%
         plot_ly(
             lat = ~lat,
             lon = ~lon,
             marker = list(color = "#B665A4"),
-            type = 'scattermapbox'
+            type = 'scattermapbox',
+            customdata = df_list,
+            hovertemplate = paste('Type: %{customdata.COMMON_NAME}<br>',
+                                  'Neighbourhood: %{customdata.NEIGHBOURHOOD_NAME}<br>',
+                                  'Diameter(cm): %{customdata.DIAMETER:.2f}<br>',
+                                  'Tree ID: %{customdata.TREE_ID}<extra></extra>'
+            )
         )
     
     fig <- fig %>%
@@ -315,6 +328,8 @@ street_map_plot <- function(df) {
                 center = list(lat=49.24, lon =-123.11)
             )
         )
+    
+    return(fig)
 }
 
 timeline_plot <- function(trees_timeline) {
