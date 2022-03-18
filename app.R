@@ -12,6 +12,7 @@ raw_trees$BLOOM_START <- as.Date(raw_trees$BLOOM_START, format = "%d /%m /%Y")
 raw_trees$BLOOM_END <- as.Date(raw_trees$BLOOM_END, format = "%d /%m /%Y")
 raw_trees$CULTIVAR_NAME <- str_to_title(raw_trees$CULTIVAR_NAME)
 raw_trees$COMMON_NAME <- str_to_title(raw_trees$COMMON_NAME)
+raw_trees$DIAMETER_CM <- raw_trees$DIAMETER * 2.54
 
 # Setup app and layout/frontend
 app <- Dash$new(external_stylesheets = list(
@@ -331,9 +332,10 @@ app$callback(
     input("picker_date", "start_date"),
     input("picker_date", "end_date"),
     input("filter_neighbourhood", "value"),
-    input("filter_cultivar", "value")
+    input("filter_cultivar", "value"),
+    input("slider_diameter", "value")
   ),
-  function(start_date, end_date, neighbourhood, cultivar) {
+  function(start_date, end_date, neighbourhood, cultivar, diameter) {
     # Date input Cleanup
     
     # 
@@ -373,6 +375,12 @@ app$callback(
       filtered_trees <- filtered_trees %>%
         filter(CULTIVAR_NAME %in% cultivar)
     }
+
+    # Diameter slider
+
+    filtered_trees <- filtered_trees %>%
+      filter(DIAMETER_CM > 0 & DIAMETER_CM <= 150) %>%
+      filter((DIAMETER_CM > diameter[1]) & (DIAMETER_CM < diameter[2]))
 
     timeline <- timeline_plot(filtered_trees)
 
