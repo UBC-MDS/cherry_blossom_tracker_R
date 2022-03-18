@@ -435,7 +435,7 @@ app$callback(
 )
 
 diameter_plot <- function(trees_diam) {
-  trees_diam <- trees_diam |>
+  trees_diam <- trees_diam %>%
     drop_na(DIAMETER_CM)
 
   mean_diam <- round(mean(trees_diam$DIAMETER_CM), 2)
