@@ -28,6 +28,8 @@ app <- Dash$new(external_stylesheets = list(
   "https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap",
   dbcThemes$BOOTSTRAP))
 
+app$title("Vancouver Cherry Blossom Tracker")
+
 # Header navigation component
 toast <- htmlDiv(
   list(
