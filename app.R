@@ -1,6 +1,6 @@
 library(dash)
-library(dashHtmlComponents)
-library(dashCoreComponents)
+# library(dashHtmlComponents)
+# library(dashCoreComponents)
 library(dashBootstrapComponents)
 library(tidyverse)
 library(ggplot2)
@@ -12,9 +12,12 @@ raw_trees$BLOOM_START <- as.Date(raw_trees$BLOOM_START, format = "%d /%m /%Y")
 raw_trees$BLOOM_END <- as.Date(raw_trees$BLOOM_END, format = "%d /%m /%Y")
 raw_trees$CULTIVAR_NAME <- str_to_title(raw_trees$CULTIVAR_NAME)
 raw_trees$COMMON_NAME <- str_to_title(raw_trees$COMMON_NAME)
+raw_trees$DIAMETER_CM <- raw_trees$DIAMETER * 2.54
 
 # Setup app and layout/frontend
-app <- Dash$new(external_stylesheets = dbcThemes$BOOTSTRAP)
+app <- Dash$new(external_stylesheets = list(
+  "https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap",
+  dbcThemes$BOOTSTRAP))
 
 # Header navigation component
 toast <- htmlDiv(
@@ -210,13 +213,80 @@ app$layout(
             list(
               dbcCol(
                 list(
+                  htmlLabel("Cherry blossom tree map"),
+                  dbcCol(
+                    list(
+                      # Start of placeholder
+                      # This htmlDiv is just a placeholder for TZ
+                      # It should be deleted be replaced with a map
+                      htmlDiv(
+                        style = (
+                          list("background-color" = "lightgray", "height" = "400px")
+                        )
+                      )
+                      # End of placeholder
+
+                    )
+                  )
+                ),
+                width = 12,
+                id = "row-map"
+              )
+            )
+          ),
+          dbcRow(
+            list(
+              dbcCol(
+                list(
+                  htmlLabel("Tree cultivars (types)"),
+                  # Start of placeholder for GABE
+                  dccGraph(
+                    id = "cultivar"
+                  )
+                  # End of placeholder
+                ),
+                width = 6,
+                className = "chart-box"
+              ),
+              dbcCol(
+                list(
                   htmlLabel("Blooming timeline"),
                   dccGraph(
                     id = "timeline"
                   )
-                )
+                ),
+                width = 6,
+                className = "chart-box"
               )
-            )
+            ),
+            className = "row-chart"
+          ),
+          dbcRow(
+            list(
+              dbcCol(
+                list(
+                  htmlLabel("Tree diameters"),
+                  dccGraph(
+                    id = "diameter"
+                  )
+                ),
+                width = 6,
+                className = "chart-box"
+              ),
+              dbcCol(
+                list(
+                  htmlLabel("Tree density"),
+                  # Start of placeholder for TZ
+                  dccGraph(
+                    id = "density"
+                  )
+                  # End of placeholder
+                ),
+                width = 6,
+                className = "chart-box"
+              )
+            ),
+            className = "row-chart"
           )
         )
       )
@@ -262,9 +332,10 @@ app$callback(
     input("picker_date", "start_date"),
     input("picker_date", "end_date"),
     input("filter_neighbourhood", "value"),
-    input("filter_cultivar", "value")
+    input("filter_cultivar", "value"),
+    input("slider_diameter", "value")
   ),
-  function(start_date, end_date, neighbourhood, cultivar) {
+  function(start_date, end_date, neighbourhood, cultivar, diameter) {
     # Date input Cleanup
     
     # 
@@ -305,11 +376,77 @@ app$callback(
         filter(CULTIVAR_NAME %in% cultivar)
     }
 
+    # Diameter slider
+
+    filtered_trees <- filtered_trees %>%
+      filter((DIAMETER_CM > diameter[1]) & (DIAMETER_CM < diameter[2]))
+
     timeline <- timeline_plot(filtered_trees)
 
     return(timeline)
   }
 )
+
+app$callback(
+  output("diameter", "figure"),
+  list(
+    input("picker_date", "start_date"),
+    input("picker_date", "end_date"),
+    input("filter_neighbourhood", "value"),
+    input("filter_cultivar", "value"),
+    input("slider_diameter", "value")
+  ),
+  function(start_date, end_date, neighbourhood, cultivar, diameter) {
+    filtered_trees <- raw_trees
+
+    # Filter by date
+
+    filtered_trees <- filtered_trees %>%
+      filter(
+        ((BLOOM_START <= start_date) & (BLOOM_END >= start_date)) |
+          ((BLOOM_START <= end_date) & (BLOOM_END >= end_date)) |
+          ((BLOOM_START <= end_date) & (BLOOM_START >= start_date)) |
+          ((BLOOM_END <= end_date) & (BLOOM_END >= start_date))
+      )
+    
+    # Filter by neighborhood
+    
+    if (length(neighbourhood) != 0) {
+      filtered_trees <- filtered_trees %>%
+        filter(NEIGHBOURHOOD_NAME %in% neighbourhood)
+    }
+
+    # Filter by cultivar
+    
+    if (length(cultivar) != 0) {
+      filtered_trees <- filtered_trees %>%
+        filter(CULTIVAR_NAME %in% cultivar)
+    }
+
+    # Diameter slider
+
+    filtered_trees <- filtered_trees %>%
+      filter((DIAMETER_CM > diameter[1]) & (DIAMETER_CM < diameter[2]))
+
+    diameter <- diameter_plot(filtered_trees)
+
+    return(diameter)
+  }
+)
+
+diameter_plot <- function(trees_diam) {
+  trees_diam <- trees_diam |>
+    drop_na(DIAMETER_CM)
+  
+  diam <- ggplot(trees_diam) +
+    aes(x = DIAMETER_CM) +
+    geom_density(fill = "#F3B2D2", alpha = 0.4, size = 1, color = "#d982ad") +
+    labs(y = "Density", x = "Tree diameter (cm)") +
+    scale_x_continuous(limits = c(0, 150)) +
+    theme(axis.text.y = element_blank())
+
+  return(ggplotly(diam, tooltip = c("")))
+}
 
 app$callback(
   output("simple-toast", "is_open"),
@@ -322,4 +459,6 @@ app$callback(
   }
 )
 
-app$run_server(host = '0.0.0.0')
+# app$run_server(host = '0.0.0.0')
+app$run_server(debug = T)
+
