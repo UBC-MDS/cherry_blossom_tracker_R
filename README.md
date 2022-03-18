@@ -35,12 +35,12 @@ Please checkout a scrollable interactive sketch on Figma. The dropdown selection
 
 Interested in contributing? Check out the contributing guidelines. Please note that this project is released with a Code of Conduct. By contributing to this project, you agree to abide by its terms.
 
-For this project, we used `Dash` for dashboarding, `Altair` and `Plotly` for charts, and `Heroku` for deployment. Do check out the following links to learn more about them:
+For this project, we used `Dash` for dashboarding, `GGplot` and `Plotly` for charts, and `Heroku` for deployment. Do check out the following links to learn more about them:
 
-* [Dash Python User Guide](https://dash.plotly.com/)
+* [Dash R User Guide](https://dash.plotly.com/)
 * [Dash interactive visualization](https://dash.plotly.com/interactive-graphing)
-* [Altair documentation](https://altair-viz.github.io/index.html)
-* [Plotly Python documentation](https://plotly.com/python/)
+* [ggplot documentation](https://ggplot2.tidyverse.org/reference/ggplot.html)
+* [Plotly R documentation](https://plotly.com/r/)
 * [Deploying Dash (on Heroku)](https://dash.plotly.com/deployment)
 
 ## License
