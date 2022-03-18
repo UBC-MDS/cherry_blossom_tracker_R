@@ -379,7 +379,8 @@ app$callback(
   list(
       output("timeline", "figure"),    
       output("streetmap", "figure"),
-      output("density", "figure")
+      output("density", "figure"),
+      output("diameter", "figure")
   ),
   list(
     input("picker_date", "start_date"),
@@ -433,59 +434,14 @@ app$callback(
 
     filtered_trees <- filtered_trees %>%
       filter((DIAMETER_CM > diameter[1]) & (DIAMETER_CM < diameter[2]))
-
+    
+    # Plot functions
     timeline <- timeline_plot(filtered_trees)
     streetmap <- street_map_plot(filtered_trees)
     density <- density_plot(filtered_trees)
-
-    return(list(timeline, streetmap, density))
-  }
-)
-
-app$callback(
-  output("diameter", "figure"),
-  list(
-    input("picker_date", "start_date"),
-    input("picker_date", "end_date"),
-    input("filter_neighbourhood", "value"),
-    input("filter_cultivar", "value"),
-    input("slider_diameter", "value")
-  ),
-  function(start_date, end_date, neighbourhood, cultivar, diameter) {
-    filtered_trees <- raw_trees
-
-    # Filter by date
-
-    filtered_trees <- filtered_trees %>%
-      filter(
-        ((BLOOM_START <= start_date) & (BLOOM_END >= start_date)) |
-          ((BLOOM_START <= end_date) & (BLOOM_END >= end_date)) |
-          ((BLOOM_START <= end_date) & (BLOOM_START >= start_date)) |
-          ((BLOOM_END <= end_date) & (BLOOM_END >= start_date))
-      )
-    
-    # Filter by neighborhood
-    
-    if (length(neighbourhood) != 0) {
-      filtered_trees <- filtered_trees %>%
-        filter(NEIGHBOURHOOD_NAME %in% neighbourhood)
-    }
-
-    # Filter by cultivar
-    
-    if (length(cultivar) != 0) {
-      filtered_trees <- filtered_trees %>%
-        filter(CULTIVAR_NAME %in% cultivar)
-    }
-
-    # Diameter slider
-
-    filtered_trees <- filtered_trees %>%
-      filter((DIAMETER_CM > diameter[1]) & (DIAMETER_CM < diameter[2]))
-
     diameter <- diameter_plot(filtered_trees)
 
-    return(diameter)
+    return(list(timeline, streetmap, density, diameter))
   }
 )
 
