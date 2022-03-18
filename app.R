@@ -215,15 +215,22 @@ app$layout(
                   htmlLabel("Cherry blossom tree map"),
                   dbcCol(
                     list(
-                      # This div is just a placeholder for TZ, it will be replaced with a map
+                      # This htmlDiv is just a placeholder for TZ
+                      # It should be deleted be replaced with a map
+
+                      # Start of placeholder
                       htmlDiv(
                         style = (
                           list("border" = "1px lightgray solid", "height" = "400px")
                         )
                       )
+                      # End of placeholder
+
                     )
                   )
-                )
+                ),
+                width = 12,
+                id = "row-map"
               )
             )
           ),
@@ -231,11 +238,29 @@ app$layout(
             list(
               dbcCol(
                 list(
+                  htmlLabel("Tree cultivars (types)"),
+                  # This htmlDiv is a placeholder for GABE'S chart
+                  # It should be deleted and replaced with ddcGraph
+
+                  # Start of placeholder
+                  htmlDiv(
+                        style = (
+                          list("border" = "1px lightgray solid", "height" = "400px")
+                        )
+                      )
+                  # End of placeholder
+
+                ),
+                width = 6
+              ),
+              dbcCol(
+                list(
                   htmlLabel("Blooming timeline"),
                   dccGraph(
                     id = "timeline"
                   )
-                )
+                ),
+                width = 6
               )
             )
           )
