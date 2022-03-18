@@ -225,8 +225,12 @@ app$layout(
                   htmlLabel("Cherry blossom tree map"),
                   dbcCol(
                     list(
-                      # Street map
-                        dccGraph(id = "streetmap")
+                      dccLoading(
+                          id = "loading-1",
+                          type = "circle",
+                          children = dccGraph(id = "streetmap"),
+                          color = "#B665A4"
+                      )
                     )
                   )
                 ),
@@ -241,9 +245,15 @@ app$layout(
                 list(
                   htmlLabel("Tree cultivars (types)"),
                   # Start of placeholder for GABE
-                  dccGraph(
-                    id = "cultivar"
+                  dccLoading(
+                      id = "loading-2",
+                      type = "circle",
+                      children = dccGraph(
+                          id = "cultivar"
+                      ),
+                      color = "#B665A4"
                   )
+                  
                   # End of placeholder
                 ),
                 width = 6,
@@ -252,8 +262,13 @@ app$layout(
               dbcCol(
                 list(
                   htmlLabel("Blooming timeline"),
-                  dccGraph(
-                    id = "timeline"
+                  dccLoading(
+                      id = "loading-3",
+                      type = "circle",
+                      children = dccGraph(
+                          id = "timeline"
+                      ),
+                      color = "#B665A4"
                   )
                 ),
                 width = 6,
@@ -267,8 +282,13 @@ app$layout(
               dbcCol(
                 list(
                   htmlLabel("Tree diameters"),
-                  dccGraph(
-                    id = "diameter"
+                  dccLoading(
+                      id = "loading-4",
+                      type = "circle",
+                      children = dccGraph(
+                          id = "diameter"
+                      ),
+                      color = "#B665A4"
                   )
                 ),
                 width = 6,
@@ -277,8 +297,13 @@ app$layout(
               dbcCol(
                 list(
                   htmlLabel("Tree density"),
-                  dccGraph(
-                    id = "density"
+                  dccLoading(
+                      id = "loading-5",
+                      type = "circle",
+                      children = dccGraph(
+                          id = "density"
+                      ),
+                      color = "#B665A4"
                   )
                 ),
                 width = 6,
