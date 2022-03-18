@@ -323,8 +323,20 @@ app$layout(
 
 # Functions
 ##common function for filtering
-filter_trees <- function(start_date, end_date, neighbourhood, cultivar, diameter) {
+filter_trees <- function(start_date, end_date, neighbourhood, cultivar, diameter,
+                         selectedData) {
     filtered_trees <- raw_trees
+    
+    # Filter by selection from big map
+    if (!is.null(selectedData[[1]])) {
+        selectedTrees <- list()
+        if (!is.null(selectedData[[1]])) {
+            for (point in selectedData[[1]]) {
+                selectedTrees <- c(selectedTrees, point$customdata$TREE_ID)
+            }
+        }
+        filtered_trees <- filtered_trees %>% filter(TREE_ID %in% selectedTrees)
+    }
     
     # Filter by date
     
@@ -488,11 +500,13 @@ app$callback(
         input("picker_date", "end_date"),
         input("filter_neighbourhood", "value"),
         input("filter_cultivar", "value"),
-        input("slider_diameter", "value")
+        input("slider_diameter", "value"),
+        input("streetmap", "selectedData")
     ),
-    function(start_date, end_date, cultivar,  neighbourhood,  diameter) {
+    function(start_date, end_date, cultivar,  neighbourhood,  diameter,
+             selectedData) {
         
-        filtered_trees <- filter_trees(start_date, end_date, cultivar,  neighbourhood,  diameter)
+        filtered_trees <- filter_trees(start_date, end_date, cultivar,  neighbourhood,  diameter, selectedData)
         barplot <- bar_plot(filtered_trees)
         
         return(barplot)
@@ -507,10 +521,11 @@ app$callback(
         input("picker_date", "end_date"),
         input("filter_neighbourhood", "value"),
         input("filter_cultivar", "value"),
-        input("slider_diameter", "value")
+        input("slider_diameter", "value"),
+        input("streetmap", "selectedData")
     ),
-    function(start_date, end_date, neighbourhood, cultivar, diameter) {
-        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter)
+    function(start_date, end_date, neighbourhood, cultivar, diameter, selectedData) {
+        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter, selectedData)
         
         diameter <- diameter_plot(filtered_trees)
         
@@ -526,10 +541,11 @@ app$callback(
         input("picker_date", "end_date"),
         input("filter_neighbourhood", "value"),
         input("filter_cultivar", "value"),
-        input("slider_diameter", "value")
+        input("slider_diameter", "value"),
+        input("streetmap", "selectedData")
     ),
-    function(start_date, end_date, neighbourhood, cultivar, diameter) {
-        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter)
+    function(start_date, end_date, neighbourhood, cultivar, diameter, selectedData) {
+        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter, selectedData)
         
         timeline <- timeline_plot(filtered_trees)
         
@@ -545,10 +561,11 @@ app$callback(
         input("picker_date", "end_date"),
         input("filter_neighbourhood", "value"),
         input("filter_cultivar", "value"),
-        input("slider_diameter", "value")
+        input("slider_diameter", "value"),
+        input("streetmap", "selectedData")
     ),
-    function(start_date, end_date, neighbourhood, cultivar, diameter) {
-        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter)
+    function(start_date, end_date, neighbourhood, cultivar, diameter, selectedData) {
+        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter, selectedData)
         
         streetmap <- street_map_plot(filtered_trees)
         
@@ -564,10 +581,11 @@ app$callback(
         input("picker_date", "end_date"),
         input("filter_neighbourhood", "value"),
         input("filter_cultivar", "value"),
-        input("slider_diameter", "value")
+        input("slider_diameter", "value"),
+        input("streetmap", "selectedData")
     ),
-    function(start_date, end_date, neighbourhood, cultivar, diameter) {
-        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter)
+    function(start_date, end_date, neighbourhood, cultivar, diameter, selectedData) {
+        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter, selectedData)
         
         density <- density_plot(filtered_trees)
         
