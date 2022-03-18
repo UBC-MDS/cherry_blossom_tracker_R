@@ -379,7 +379,6 @@ app$callback(
     # Diameter slider
 
     filtered_trees <- filtered_trees %>%
-      filter(DIAMETER_CM > 0 & DIAMETER_CM <= 150) %>%
       filter((DIAMETER_CM > diameter[1]) & (DIAMETER_CM < diameter[2]))
 
     timeline <- timeline_plot(filtered_trees)
@@ -387,6 +386,67 @@ app$callback(
     return(timeline)
   }
 )
+
+app$callback(
+  output("diameter", "figure"),
+  list(
+    input("picker_date", "start_date"),
+    input("picker_date", "end_date"),
+    input("filter_neighbourhood", "value"),
+    input("filter_cultivar", "value"),
+    input("slider_diameter", "value")
+  ),
+  function(start_date, end_date, neighbourhood, cultivar, diameter) {
+    filtered_trees <- raw_trees
+
+    # Filter by date
+
+    filtered_trees <- filtered_trees %>%
+      filter(
+        ((BLOOM_START <= start_date) & (BLOOM_END >= start_date)) |
+          ((BLOOM_START <= end_date) & (BLOOM_END >= end_date)) |
+          ((BLOOM_START <= end_date) & (BLOOM_START >= start_date)) |
+          ((BLOOM_END <= end_date) & (BLOOM_END >= start_date))
+      )
+    
+    # Filter by neighborhood
+    
+    if (length(neighbourhood) != 0) {
+      filtered_trees <- filtered_trees %>%
+        filter(NEIGHBOURHOOD_NAME %in% neighbourhood)
+    }
+
+    # Filter by cultivar
+    
+    if (length(cultivar) != 0) {
+      filtered_trees <- filtered_trees %>%
+        filter(CULTIVAR_NAME %in% cultivar)
+    }
+
+    # Diameter slider
+
+    filtered_trees <- filtered_trees %>%
+      filter((DIAMETER_CM > diameter[1]) & (DIAMETER_CM < diameter[2]))
+
+    diameter <- diameter_plot(filtered_trees)
+
+    return(diameter)
+  }
+)
+
+diameter_plot <- function(trees_diam) {
+  trees_diam <- trees_diam |>
+    drop_na(DIAMETER_CM)
+  
+  diam <- ggplot(trees_diam) +
+    aes(x = DIAMETER_CM) +
+    geom_density(fill = "#F3B2D2", alpha = 0.4, size = 1, color = "#d982ad") +
+    labs(y = "Density", x = "Tree diameter (cm)") +
+    scale_x_continuous(limits = c(0, 150)) +
+    theme(axis.text.y = element_blank())
+
+  return(ggplotly(diam, tooltip = c("")))
+}
 
 app$callback(
   output("simple-toast", "is_open"),
