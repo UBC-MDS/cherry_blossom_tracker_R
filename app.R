@@ -437,15 +437,18 @@ app$callback(
 diameter_plot <- function(trees_diam) {
   trees_diam <- trees_diam |>
     drop_na(DIAMETER_CM)
-  
+
+  mean_diam <- round(mean(trees_diam$DIAMETER_CM), 2)
+
   diam <- ggplot(trees_diam) +
-    aes(x = DIAMETER_CM) +
+    aes(x = DIAMETER_CM,
+        text = paste0("Mean diameter: ", mean_diam)) +
     geom_density(fill = "#F3B2D2", alpha = 0.4, size = 1, color = "#d982ad") +
     labs(y = "Density", x = "Tree diameter (cm)") +
     scale_x_continuous(limits = c(0, 150)) +
     theme(axis.text.y = element_blank())
-
-  return(ggplotly(diam, tooltip = c("")))
+  
+  return(ggplotly(diam))
 }
 
 app$callback(
@@ -459,6 +462,6 @@ app$callback(
   }
 )
 
-# app$run_server(host = '0.0.0.0')
-app$run_server(debug = T)
+app$run_server(host = '0.0.0.0')
+# app$run_server(debug = T)
 
