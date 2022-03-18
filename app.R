@@ -215,10 +215,9 @@ app$layout(
                   htmlLabel("Cherry blossom tree map"),
                   dbcCol(
                     list(
+                      # Start of placeholder
                       # This htmlDiv is just a placeholder for TZ
                       # It should be deleted be replaced with a map
-
-                      # Start of placeholder
                       htmlDiv(
                         style = (
                           list("background-color" = "lightgray", "height" = "400px")
@@ -239,17 +238,11 @@ app$layout(
               dbcCol(
                 list(
                   htmlLabel("Tree cultivars (types)"),
-                  # This htmlDiv is a placeholder for GABE'S chart
-                  # It should be deleted and replaced with ddcGraph
-
-                  # Start of placeholder
-                  htmlDiv(
-                        style = (
-                          list("background-color" = "lightgray", "height" = "500px")
-                        )
-                      )
+                  # Start of placeholder for GABE
+                  dccGraph(
+                    id = "cultivar"
+                  )
                   # End of placeholder
-
                 ),
                 width = 6,
                 className = "chart-box"
@@ -272,17 +265,9 @@ app$layout(
               dbcCol(
                 list(
                   htmlLabel("Tree diameters"),
-                  # This htmlDiv is a placeholder for GABE'S chart
-                  # It should be deleted and replaced with ddcGraph
-
-                  # Start of placeholder
-                  htmlDiv(
-                        style = (
-                          list("background-color" = "lightgray", "height" = "500px")
-                        )
-                      )
-                  # End of placeholder
-
+                  dccGraph(
+                    id = "diameter"
+                  )
                 ),
                 width = 6,
                 className = "chart-box"
@@ -290,15 +275,10 @@ app$layout(
               dbcCol(
                 list(
                   htmlLabel("Tree density"),
-                  # This htmlDiv is a placeholder for GABE'S chart
-                  # It should be deleted and replaced with ddcGraph
-
-                  # Start of placeholder
-                  htmlDiv(
-                        style = (
-                          list("background-color" = "lightgray", "height" = "500px")
-                        )
-                      )
+                  # Start of placeholder for TZ
+                  dccGraph(
+                    id = "density"
+                  )
                   # End of placeholder
                 ),
                 width = 6,
