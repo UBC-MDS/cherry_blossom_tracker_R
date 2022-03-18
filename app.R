@@ -3,6 +3,7 @@ library(dashHtmlComponents)
 library(dashCoreComponents)
 library(dashBootstrapComponents)
 library(dplyr)
+library(forcats)
 library(stringr)
 library(readr)
 library(tidyr)
@@ -298,8 +299,45 @@ app$layout(
   )
 )
 
-# Chart function
+# Functions
 
+##common function for filtering
+filter_trees <- function(start_date, end_date, neighbourhood, cultivar, diameter) {
+    filtered_trees <- raw_trees
+    
+    # Filter by date
+    
+    filtered_trees <- filtered_trees %>%
+        filter(
+            ((BLOOM_START <= start_date) & (BLOOM_END >= start_date)) |
+                ((BLOOM_START <= end_date) & (BLOOM_END >= end_date)) |
+                ((BLOOM_START <= end_date) & (BLOOM_START >= start_date)) |
+                ((BLOOM_END <= end_date) & (BLOOM_END >= start_date))
+        )
+    
+    # Filter by neighborhood
+    
+    if (length(neighbourhood) != 0) {
+        filtered_trees <- filtered_trees %>%
+            filter(NEIGHBOURHOOD_NAME %in% neighbourhood)
+    }
+    
+    # Filter by cultivar
+    
+    if (length(cultivar) != 0) {
+        filtered_trees <- filtered_trees %>%
+            filter(CULTIVAR_NAME %in% cultivar)
+    }
+    
+    # Diameter slider
+    
+    filtered_trees <- filtered_trees %>%
+        filter((DIAMETER_CM > diameter[1]) & (DIAMETER_CM < diameter[2]))
+    
+    return(filtered_trees)
+}
+
+#Timeline Plot Code
 timeline_plot <- function(trees_timeline) {
   trees_timeline <- trees_timeline %>%
     filter_at(vars(BLOOM_START, BLOOM_END), any_vars(!is.na(.))) %>%
@@ -329,67 +367,66 @@ timeline_plot <- function(trees_timeline) {
   return(p)
 }
 
+"Cultivar Count Plot Code"
+bar_plot <- function(trees_count) {
+    #trees_count <- trees_count %>%
+        
+        #select(CULTIVAR_NAME, BLOOM_START, BLOOM_END,  DIAMETER, NEIGHBOURHOOD_NAME)
+    
+    p <- ggplot() + 
+        geom_bar(data = trees_count, aes( y = fct_rev(forcats::fct_infreq(CULTIVAR_NAME))), fill = "#F3B2D2") +
+        #theme_classic() +
+        theme(legend.position = "none") +
+        theme(
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.line=element_blank()
+        )
+    
+    #p <- ggplotly(p + aes(Start = Start, End = End), tooltip = c("Start", "End")) %>%
+    #  layout(xaxis = list(side = "top"))
+    
+    return(ggplotly(p,  tooltip = 'count'))
+}
+
+"Tree Diameter Plot Code"
+diameter_plot <- function(trees_diam) {
+    trees_diam <- trees_diam %>%
+        drop_na(DIAMETER_CM)
+    
+    mean_diam <- round(mean(trees_diam$DIAMETER_CM), 2)
+    
+    diam <- ggplot(trees_diam) +
+        aes(x = DIAMETER_CM,
+            text = paste0("Mean diameter: ", mean_diam)) +
+        geom_density(fill = "#F3B2D2", alpha = 0.4, size = 1, color = "#d982ad") +
+        labs(y = "Density", x = "Tree diameter (cm)") +
+        scale_x_continuous(limits = c(0, 150)) +
+        theme(axis.text.y = element_blank())
+    
+    return(ggplotly(diam))
+}
+
+"Cultivar Callback"
 app$callback(
-  output("timeline", "figure"),
-  list(
-    input("picker_date", "start_date"),
-    input("picker_date", "end_date"),
-    input("filter_neighbourhood", "value"),
-    input("filter_cultivar", "value"),
-    input("slider_diameter", "value")
-  ),
-  function(start_date, end_date, neighbourhood, cultivar, diameter) {
-    # Date input Cleanup
-    
-    # 
-    # if (start_date == "None") {
-    #   start_date <- "2022-01-01"
-    # }
-    #
-    # if (end_date == "None") {
-    #   end_date <- "2022-05-30"
-    # }
-
-    # start_date <- as.Date(start_date)
-    # end_date <- as.Date(end_date)
-
-    filtered_trees <- raw_trees
-
-    # Filter by date
-
-    filtered_trees <- filtered_trees %>%
-      filter(
-        ((BLOOM_START <= start_date) & (BLOOM_END >= start_date)) |
-          ((BLOOM_START <= end_date) & (BLOOM_END >= end_date)) |
-          ((BLOOM_START <= end_date) & (BLOOM_START >= start_date)) |
-          ((BLOOM_END <= end_date) & (BLOOM_END >= start_date))
-      )
-    
-    # Filter by neighborhood
-    
-    if (length(neighbourhood) != 0) {
-      filtered_trees <- filtered_trees %>%
-        filter(NEIGHBOURHOOD_NAME %in% neighbourhood)
+    output("cultivar", "figure"),
+    list(
+        input("picker_date", "start_date"),
+        input("picker_date", "end_date"),
+        input("filter_neighbourhood", "value"),
+        input("filter_cultivar", "value"),
+        input("slider_diameter", "value")
+    ),
+    function(start_date, end_date, cultivar,  neighbourhood,  diameter) {
+        
+        filtered_trees <- filter_trees(start_date, end_date, cultivar,  neighbourhood,  diameter)
+        barplot <- bar_plot(filtered_trees)
+        
+        return(barplot)
     }
-
-    # Filter by cultivar
-    
-    if (length(cultivar) != 0) {
-      filtered_trees <- filtered_trees %>%
-        filter(CULTIVAR_NAME %in% cultivar)
-    }
-
-    # Diameter slider
-
-    filtered_trees <- filtered_trees %>%
-      filter((DIAMETER_CM > diameter[1]) & (DIAMETER_CM < diameter[2]))
-
-    timeline <- timeline_plot(filtered_trees)
-
-    return(timeline)
-  }
 )
 
+"Diameter Callback"
 app$callback(
   output("diameter", "figure"),
   list(
@@ -400,36 +437,7 @@ app$callback(
     input("slider_diameter", "value")
   ),
   function(start_date, end_date, neighbourhood, cultivar, diameter) {
-    filtered_trees <- raw_trees
-
-    # Filter by date
-
-    filtered_trees <- filtered_trees %>%
-      filter(
-        ((BLOOM_START <= start_date) & (BLOOM_END >= start_date)) |
-          ((BLOOM_START <= end_date) & (BLOOM_END >= end_date)) |
-          ((BLOOM_START <= end_date) & (BLOOM_START >= start_date)) |
-          ((BLOOM_END <= end_date) & (BLOOM_END >= start_date))
-      )
-    
-    # Filter by neighborhood
-    
-    if (length(neighbourhood) != 0) {
-      filtered_trees <- filtered_trees %>%
-        filter(NEIGHBOURHOOD_NAME %in% neighbourhood)
-    }
-
-    # Filter by cultivar
-    
-    if (length(cultivar) != 0) {
-      filtered_trees <- filtered_trees %>%
-        filter(CULTIVAR_NAME %in% cultivar)
-    }
-
-    # Diameter slider
-
-    filtered_trees <- filtered_trees %>%
-      filter((DIAMETER_CM > diameter[1]) & (DIAMETER_CM < diameter[2]))
+    filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter)
 
     diameter <- diameter_plot(filtered_trees)
 
@@ -437,23 +445,26 @@ app$callback(
   }
 )
 
-diameter_plot <- function(trees_diam) {
-  trees_diam <- trees_diam %>%
-    drop_na(DIAMETER_CM)
+#Timeline Callback
+app$callback(
+    output("timeline", "figure"),
+    list(
+        input("picker_date", "start_date"),
+        input("picker_date", "end_date"),
+        input("filter_neighbourhood", "value"),
+        input("filter_cultivar", "value"),
+        input("slider_diameter", "value")
+    ),
+    function(start_date, end_date, neighbourhood, cultivar, diameter) {
+        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter)
+        
+        timeline <- timeline_plot(filtered_trees)
+        
+        return(timeline)
+    }
+)
 
-  mean_diam <- round(mean(trees_diam$DIAMETER_CM), 2)
-
-  diam <- ggplot(trees_diam) +
-    aes(x = DIAMETER_CM,
-        text = paste0("Mean diameter: ", mean_diam)) +
-    geom_density(fill = "#F3B2D2", alpha = 0.4, size = 1, color = "#d982ad") +
-    labs(y = "Density", x = "Tree diameter (cm)") +
-    scale_x_continuous(limits = c(0, 150)) +
-    theme(axis.text.y = element_blank())
-  
-  return(ggplotly(diam))
-}
-
+#Toast Callback
 app$callback(
   output("simple-toast", "is_open"),
   list(input("simple-toast-toggle", "n_clicks")),
@@ -465,6 +476,6 @@ app$callback(
   }
 )
 
-app$run_server(host = '0.0.0.0')
+app$run_server()#host = '0.0.0.0')
 # app$run_server(debug = T)
 
