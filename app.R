@@ -264,7 +264,48 @@ app$layout(
                 width = 6,
                 className = "chart-box"
               )
-            )
+            ),
+            className = "row-chart"
+          ),
+          dbcRow(
+            list(
+              dbcCol(
+                list(
+                  htmlLabel("Tree diameters"),
+                  # This htmlDiv is a placeholder for GABE'S chart
+                  # It should be deleted and replaced with ddcGraph
+
+                  # Start of placeholder
+                  htmlDiv(
+                        style = (
+                          list("background-color" = "lightgray", "height" = "500px")
+                        )
+                      )
+                  # End of placeholder
+
+                ),
+                width = 6,
+                className = "chart-box"
+              ),
+              dbcCol(
+                list(
+                  htmlLabel("Tree density"),
+                  # This htmlDiv is a placeholder for GABE'S chart
+                  # It should be deleted and replaced with ddcGraph
+
+                  # Start of placeholder
+                  htmlDiv(
+                        style = (
+                          list("background-color" = "lightgray", "height" = "500px")
+                        )
+                      )
+                  # End of placeholder
+                ),
+                width = 6,
+                className = "chart-box"
+              )
+            ),
+            className = "row-chart"
           )
         )
       )
