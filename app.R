@@ -6,6 +6,10 @@ library(tidyverse)
 library(ggplot2)
 library(plotly)
 
+# For Maps
+library(broom)
+library(rgdal)
+
 # Data (wrangled)
 raw_trees <- read_csv("data/processed_trees.csv")
 raw_trees$BLOOM_START <- as.Date(raw_trees$BLOOM_START, format = "%d /%m /%Y")
@@ -13,6 +17,11 @@ raw_trees$BLOOM_END <- as.Date(raw_trees$BLOOM_END, format = "%d /%m /%Y")
 raw_trees$CULTIVAR_NAME <- str_to_title(raw_trees$CULTIVAR_NAME)
 raw_trees$COMMON_NAME <- str_to_title(raw_trees$COMMON_NAME)
 raw_trees$DIAMETER_CM <- raw_trees$DIAMETER * 2.54
+
+# geojson
+url_geojson <- "https://raw.githubusercontent.com/UBC-MDS/cherry_blossom_tracker/main/data/vancouver.geojson"
+geojson <- rgdal::readOGR(url_geojson)
+geojson2 <- broom::tidy(geojson, region = "name")
 
 # Setup app and layout/frontend
 app <- Dash$new(external_stylesheets = list(
@@ -216,16 +225,8 @@ app$layout(
                   htmlLabel("Cherry blossom tree map"),
                   dbcCol(
                     list(
-                      # Start of placeholder
-                      # This htmlDiv is just a placeholder for TZ
-                      # It should be deleted be replaced with a map
-                      htmlDiv(
-                        style = (
-                          list("background-color" = "lightgray", "height" = "400px")
-                        )
-                      )
-                      # End of placeholder
-
+                      # Street map
+                        dccGraph(id = "streetmap")
                     )
                   )
                 ),
@@ -297,6 +298,25 @@ app$layout(
 
 # Chart function
 
+street_map_plot <- function(df) {
+    fig <- df %>%
+        plot_ly(
+            lat = ~lat,
+            lon = ~lon,
+            marker = list(color = "#B665A4"),
+            type = 'scattermapbox'
+        )
+    
+    fig <- fig %>%
+        layout(
+            mapbox = list(
+                style = 'open-street-map',
+                zoom = 10,
+                center = list(lat=49.24, lon =-123.11)
+            )
+        )
+}
+
 timeline_plot <- function(trees_timeline) {
   trees_timeline <- trees_timeline %>%
     filter_at(vars(BLOOM_START, BLOOM_END), any_vars(!is.na(.))) %>%
@@ -327,7 +347,10 @@ timeline_plot <- function(trees_timeline) {
 }
 
 app$callback(
-  output("timeline", "figure"),
+  list(
+      output("timeline", "figure"),    
+      output("streetmap", "figure")
+  ),
   list(
     input("picker_date", "start_date"),
     input("picker_date", "end_date"),
@@ -382,8 +405,9 @@ app$callback(
       filter((DIAMETER_CM > diameter[1]) & (DIAMETER_CM < diameter[2]))
 
     timeline <- timeline_plot(filtered_trees)
+    streetmap <- street_map_plot(filtered_trees)
 
-    return(timeline)
+    return(list(timeline, streetmap))
   }
 )
 
