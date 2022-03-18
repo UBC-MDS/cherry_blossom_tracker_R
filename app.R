@@ -5,6 +5,7 @@ library(dashBootstrapComponents)
 library(dplyr)
 library(stringr)
 library(readr)
+library(tidyr)
 library(ggplot2)
 library(plotly)
 
