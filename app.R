@@ -6,6 +6,10 @@ library(tidyverse)
 library(ggplot2)
 library(plotly)
 
+# For Maps
+library(broom)
+library(rgdal)
+
 # Data (wrangled)
 raw_trees <- read_csv("data/processed_trees.csv")
 raw_trees$BLOOM_START <- as.Date(raw_trees$BLOOM_START, format = "%d /%m /%Y")
@@ -13,6 +17,11 @@ raw_trees$BLOOM_END <- as.Date(raw_trees$BLOOM_END, format = "%d /%m /%Y")
 raw_trees$CULTIVAR_NAME <- str_to_title(raw_trees$CULTIVAR_NAME)
 raw_trees$COMMON_NAME <- str_to_title(raw_trees$COMMON_NAME)
 raw_trees$DIAMETER_CM <- raw_trees$DIAMETER * 2.54
+
+# geojson
+url_geojson <- "https://raw.githubusercontent.com/UBC-MDS/cherry_blossom_tracker/main/data/vancouver.geojson"
+geojson <- rgdal::readOGR(url_geojson)
+geojson2 <- broom::tidy(geojson, region = "name")
 
 # Setup app and layout/frontend
 app <- Dash$new(external_stylesheets = list(
@@ -216,16 +225,12 @@ app$layout(
                   htmlLabel("Cherry blossom tree map"),
                   dbcCol(
                     list(
-                      # Start of placeholder
-                      # This htmlDiv is just a placeholder for TZ
-                      # It should be deleted be replaced with a map
-                      htmlDiv(
-                        style = (
-                          list("background-color" = "lightgray", "height" = "400px")
-                        )
+                      dccLoading(
+                          id = "loading-1",
+                          type = "circle",
+                          children = dccGraph(id = "streetmap"),
+                          color = "#B665A4"
                       )
-                      # End of placeholder
-
                     )
                   )
                 ),
@@ -240,9 +245,15 @@ app$layout(
                 list(
                   htmlLabel("Tree cultivars (types)"),
                   # Start of placeholder for GABE
-                  dccGraph(
-                    id = "cultivar"
+                  dccLoading(
+                      id = "loading-2",
+                      type = "circle",
+                      children = dccGraph(
+                          id = "cultivar"
+                      ),
+                      color = "#B665A4"
                   )
+                  
                   # End of placeholder
                 ),
                 width = 6,
@@ -251,8 +262,13 @@ app$layout(
               dbcCol(
                 list(
                   htmlLabel("Blooming timeline"),
-                  dccGraph(
-                    id = "timeline"
+                  dccLoading(
+                      id = "loading-3",
+                      type = "circle",
+                      children = dccGraph(
+                          id = "timeline"
+                      ),
+                      color = "#B665A4"
                   )
                 ),
                 width = 6,
@@ -266,8 +282,13 @@ app$layout(
               dbcCol(
                 list(
                   htmlLabel("Tree diameters"),
-                  dccGraph(
-                    id = "diameter"
+                  dccLoading(
+                      id = "loading-4",
+                      type = "circle",
+                      children = dccGraph(
+                          id = "diameter"
+                      ),
+                      color = "#B665A4"
                   )
                 ),
                 width = 6,
@@ -276,11 +297,14 @@ app$layout(
               dbcCol(
                 list(
                   htmlLabel("Tree density"),
-                  # Start of placeholder for TZ
-                  dccGraph(
-                    id = "density"
+                  dccLoading(
+                      id = "loading-5",
+                      type = "circle",
+                      children = dccGraph(
+                          id = "density"
+                      ),
+                      color = "#B665A4"
                   )
-                  # End of placeholder
                 ),
                 width = 6,
                 className = "chart-box"
@@ -296,7 +320,6 @@ app$layout(
 )
 
 # Functions
-
 ##common function for filtering
 filter_trees <- function(start_date, end_date, neighbourhood, cultivar, diameter) {
     filtered_trees <- raw_trees
@@ -333,41 +356,93 @@ filter_trees <- function(start_date, end_date, neighbourhood, cultivar, diameter
     return(filtered_trees)
 }
 
-#Timeline Plot Code
-timeline_plot <- function(trees_timeline) {
-  trees_timeline <- trees_timeline %>%
-    filter_at(vars(BLOOM_START, BLOOM_END), any_vars(!is.na(.))) %>%
-    distinct(CULTIVAR_NAME, .keep_all = TRUE) %>%
-    select(CULTIVAR_NAME, BLOOM_START, BLOOM_END)
-
-  trees_timeline <- trees_timeline %>%
-    gather(key = date_type, value = date, -CULTIVAR_NAME) %>%
-    inner_join(trees_timeline, by = "CULTIVAR_NAME") %>%
-    rename(Start = BLOOM_START, End = BLOOM_END)
-
-  p <- ggplot() +
-    geom_line(data = trees_timeline, aes(x = date, y = reorder(CULTIVAR_NAME, -as.numeric(Start)), size = "blue", color = "blue")) +
-    scale_color_manual(values = c("#F3B2D2")) +
-    scale_x_date(position = "top") +
-    theme_classic() +
-    theme(legend.position = "none") +
-    theme(
-      axis.title.x = element_blank(),
-      axis.title.y = element_blank(),
-      axis.line=element_blank()
-    )
-
-  p <- ggplotly(p + aes(Start = Start, End = End), tooltip = c("Start", "End")) %>% 
-    layout(xaxis = list(side = "top"))
-
-  return(p)
+# Street map
+street_map_plot <- function(df) {
+    # https://github.com/plotly/plotly.R/issues/1548#issuecomment-582042676
+    df_list <- split(df %>%
+                         select(COMMON_NAME,
+                                NEIGHBOURHOOD_NAME,
+                                DIAMETER,
+                                TREE_ID), seq_len(nrow(df)))
+    
+    fig <- df %>%
+        plot_ly(
+            lat = ~lat,
+            lon = ~lon,
+            marker = list(color = "#B665A4"),
+            type = 'scattermapbox',
+            customdata = df_list,
+            hovertemplate = paste('Type: %{customdata.COMMON_NAME}<br>',
+                                  'Neighbourhood: %{customdata.NEIGHBOURHOOD_NAME}<br>',
+                                  'Diameter(cm): %{customdata.DIAMETER:.2f}<br>',
+                                  'Tree ID: %{customdata.TREE_ID}<extra></extra>'
+            )
+        )
+    
+    fig <- fig %>%
+        layout(
+            mapbox = list(
+                style = 'open-street-map',
+                zoom = 10,
+                center = list(lat=49.24, lon =-123.11)
+            )
+        )
+    
+    return(fig)
 }
 
-"Cultivar Count Plot Code"
+# Denstiy map plot
+density_plot <- function(df) {
+    geojson2 <- geojson2 %>%
+        left_join(df %>% count(NEIGHBOURHOOD_NAME,
+                               name = "No. of trees"),
+                  by = c("id" = "NEIGHBOURHOOD_NAME"))
+    
+    fig_cho <- ggplot() +
+        geom_polygon(data = geojson2, 
+                     aes(x = long, y = lat, group = group, fill = `No. of trees`)) +
+        scale_fill_distiller(palette = "RdPu") +
+        coord_map() +
+        labs(x = "", y = "")
+    
+    return(ggplotly(fig_cho))
+}
+
+# Timeline Plot Code
+timeline_plot <- function(trees_timeline) {
+    trees_timeline <- trees_timeline %>%
+        filter_at(vars(BLOOM_START, BLOOM_END), any_vars(!is.na(.))) %>%
+        distinct(CULTIVAR_NAME, .keep_all = TRUE) %>%
+        select(CULTIVAR_NAME, BLOOM_START, BLOOM_END)
+    
+    trees_timeline <- trees_timeline %>%
+        gather(key = date_type, value = date, -CULTIVAR_NAME) %>%
+        inner_join(trees_timeline, by = "CULTIVAR_NAME") %>%
+        rename(Start = BLOOM_START, End = BLOOM_END)
+    
+    p <- ggplot() +
+        geom_line(data = trees_timeline, aes(x = date, y = reorder(CULTIVAR_NAME, -as.numeric(Start)), size = "blue", color = "blue")) +
+        scale_color_manual(values = c("#F3B2D2")) +
+        scale_x_date(position = "top") +
+        theme_classic() +
+        theme(legend.position = "none") +
+        theme(
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.line=element_blank()
+        )
+    
+    p <- ggplotly(p + aes(Start = Start, End = End), tooltip = c("Start", "End")) %>% 
+        layout(xaxis = list(side = "top"))
+    
+    return(p)
+}
+
+# "Cultivar Count Plot Code"
 bar_plot <- function(trees_count) {
     #trees_count <- trees_count %>%
-        
-        #select(CULTIVAR_NAME, BLOOM_START, BLOOM_END,  DIAMETER, NEIGHBOURHOOD_NAME)
+    
+    #select(CULTIVAR_NAME, BLOOM_START, BLOOM_END,  DIAMETER, NEIGHBOURHOOD_NAME)
     
     p <- ggplot() + 
         geom_bar(data = trees_count, aes( y = fct_rev(forcats::fct_infreq(CULTIVAR_NAME))), fill = "#F3B2D2") +
@@ -385,7 +460,7 @@ bar_plot <- function(trees_count) {
     return(ggplotly(p,  tooltip = 'count'))
 }
 
-"Tree Diameter Plot Code"
+# "Tree Diameter Plot Code"
 diameter_plot <- function(trees_diam) {
     trees_diam <- trees_diam %>%
         drop_na(DIAMETER_CM)
@@ -403,7 +478,7 @@ diameter_plot <- function(trees_diam) {
     return(ggplotly(diam))
 }
 
-"Cultivar Callback"
+# "Cultivar Callback"
 app$callback(
     output("cultivar", "figure"),
     list(
@@ -422,26 +497,26 @@ app$callback(
     }
 )
 
-"Diameter Callback"
+# "Diameter Callback"
 app$callback(
-  output("diameter", "figure"),
-  list(
-    input("picker_date", "start_date"),
-    input("picker_date", "end_date"),
-    input("filter_neighbourhood", "value"),
-    input("filter_cultivar", "value"),
-    input("slider_diameter", "value")
-  ),
-  function(start_date, end_date, neighbourhood, cultivar, diameter) {
-    filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter)
-
-    diameter <- diameter_plot(filtered_trees)
-
-    return(diameter)
-  }
+    output("diameter", "figure"),
+    list(
+        input("picker_date", "start_date"),
+        input("picker_date", "end_date"),
+        input("filter_neighbourhood", "value"),
+        input("filter_cultivar", "value"),
+        input("slider_diameter", "value")
+    ),
+    function(start_date, end_date, neighbourhood, cultivar, diameter) {
+        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter)
+        
+        diameter <- diameter_plot(filtered_trees)
+        
+        return(diameter)
+    }
 )
 
-#Timeline Callback
+# Timeline Callback
 app$callback(
     output("timeline", "figure"),
     list(
@@ -460,16 +535,54 @@ app$callback(
     }
 )
 
-#Toast Callback
+# Street map Callback
 app$callback(
-  output("simple-toast", "is_open"),
-  list(input("simple-toast-toggle", "n_clicks")),
-  function(n) {
-    if (n > 0) {
-      return(TRUE)
+    output("streetmap", "figure"),
+    list(
+        input("picker_date", "start_date"),
+        input("picker_date", "end_date"),
+        input("filter_neighbourhood", "value"),
+        input("filter_cultivar", "value"),
+        input("slider_diameter", "value")
+    ),
+    function(start_date, end_date, neighbourhood, cultivar, diameter) {
+        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter)
+        
+        streetmap <- street_map_plot(filtered_trees)
+        
+        return(streetmap)
     }
-    return(FALSE)
-  }
+)
+
+# Density map Callback
+app$callback(
+    output("density", "figure"),
+    list(
+        input("picker_date", "start_date"),
+        input("picker_date", "end_date"),
+        input("filter_neighbourhood", "value"),
+        input("filter_cultivar", "value"),
+        input("slider_diameter", "value")
+    ),
+    function(start_date, end_date, neighbourhood, cultivar, diameter) {
+        filtered_trees <- filter_trees(start_date, end_date, neighbourhood, cultivar, diameter)
+        
+        density <- density_plot(filtered_trees)
+        
+        return(density)
+    }
+)
+
+# Toast Callback
+app$callback(
+    output("simple-toast", "is_open"),
+    list(input("simple-toast-toggle", "n_clicks")),
+    function(n) {
+        if (n > 0) {
+            return(TRUE)
+        }
+        return(FALSE)
+    }
 )
 
 app$run_server(host = '0.0.0.0')
