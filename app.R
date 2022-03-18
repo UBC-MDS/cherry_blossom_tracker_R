@@ -1,6 +1,6 @@
 library(dash)
-library(dashHtmlComponents)
-library(dashCoreComponents)
+# library(dashHtmlComponents)
+# library(dashCoreComponents)
 library(dashBootstrapComponents)
 library(tidyverse)
 library(ggplot2)
@@ -14,7 +14,9 @@ raw_trees$CULTIVAR_NAME <- str_to_title(raw_trees$CULTIVAR_NAME)
 raw_trees$COMMON_NAME <- str_to_title(raw_trees$COMMON_NAME)
 
 # Setup app and layout/frontend
-app <- Dash$new(external_stylesheets = dbcThemes$BOOTSTRAP)
+app <- Dash$new(external_stylesheets = list(
+  "https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap",
+  dbcThemes$BOOTSTRAP))
 
 # Header navigation component
 toast <- htmlDiv(
@@ -210,6 +212,25 @@ app$layout(
             list(
               dbcCol(
                 list(
+                  htmlLabel("Cherry blossom tree map"),
+                  dbcCol(
+                    list(
+                      # This div is just a placeholder for TZ, it will be replaced with a map
+                      htmlDiv(
+                        style = (
+                          list("border" = "1px lightgray solid", "height" = "400px")
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          dbcRow(
+            list(
+              dbcCol(
+                list(
                   htmlLabel("Blooming timeline"),
                   dccGraph(
                     id = "timeline"
@@ -322,4 +343,6 @@ app$callback(
   }
 )
 
-app$run_server(host = '0.0.0.0')
+# app$run_server(host = '0.0.0.0')
+app$run_server(debug = T)
+
