@@ -332,14 +332,16 @@ street_map_plot <- function(df) {
 
 density_plot <- function(df) {
     geojson2 <- geojson2 %>%
-        left_join(df %>% count(NEIGHBOURHOOD_NAME),
+        left_join(df %>% count(NEIGHBOURHOOD_NAME,
+                               name = "No. of trees"),
                   by = c("id" = "NEIGHBOURHOOD_NAME"))
     
     fig_cho <- ggplot() +
         geom_polygon(data = geojson2, 
-                     aes(x = long, y = lat, group = group, fill = n)) +
+                     aes(x = long, y = lat, group = group, fill = `No. of trees`)) +
         scale_fill_distiller(palette = "RdPu") +
-        coord_map()
+        coord_map() +
+        labs(x = "", y = "")
     
     return(ggplotly(fig_cho))
 }
