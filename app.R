@@ -2,7 +2,7 @@ library(dash)
 library(dashHtmlComponents)
 library(dashCoreComponents)
 library(dashBootstrapComponents)
-library(tidyverse)
+library(dplyr)
 library(ggplot2)
 library(plotly)
 
