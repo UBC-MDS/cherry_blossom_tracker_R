@@ -475,7 +475,7 @@ diameter_plot <- function(trees_diam) {
         scale_x_continuous(limits = c(0, 150)) +
         theme(axis.text.y = element_blank())
     
-    return(ggplotly(diam))
+    return(ggplotly(diam, tooltip = 'text'))
 }
 
 # "Cultivar Callback"
