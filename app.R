@@ -338,6 +338,7 @@ density_plot <- function(df) {
     fig_cho <- ggplot() +
         geom_polygon(data = geojson2, 
                      aes(x = long, y = lat, group = group, fill = n)) +
+        scale_fill_distiller(palette = "RdPu") +
         coord_map()
     
     return(ggplotly(fig_cho))
