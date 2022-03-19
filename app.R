@@ -388,7 +388,7 @@ street_map_plot <- function(df) {
             customdata = df_list,
             hovertemplate = paste('Type: %{customdata.COMMON_NAME}<br>',
                                   'Neighbourhood: %{customdata.NEIGHBOURHOOD_NAME}<br>',
-                                  'Diameter(cm): %{customdata.DIAMETER:.2f}<br>',
+                                  'Diameter(cm): %{customdata.DIAMETER_CM:.2f}<br>',
                                   'Tree ID: %{customdata.TREE_ID}<extra></extra>'
             )
         )
